@@ -9,14 +9,18 @@ using GTA.UI;
 public class LoadAddonNPCs : Script
 {
     private List<string> addonNPCs = new List<string>();
-    private int ticksSinceLastSpawn = 0;
-    private int spawnInterval = 1200; // 20 seconds in ticks (assuming 60 ticks per second)
+    private List<string> addonAnimals = new List<string>();
+    private int ticksSinceLastSpawnNPC = 0;
+    private int ticksSinceLastSpawnAnimal = 0;
+    private int spawnIntervalNPC = 1200; // 20 seconds in ticks (assuming 60 ticks per second)
+    private int spawnIntervalAnimal = 1800; // 30 seconds in ticks (assuming 60 ticks per second)
     private Random random = new Random();
 
     public LoadAddonNPCs()
     {
-        // Load the list of addon NPCs from a file
+        // Load the list of addon NPCs and animals from files
         LoadNPCsFromFile("scripts/addonNPCs.txt");
+        LoadAnimalsFromFile("scripts/addonAnimals.txt");
 
         // Hook into the Tick event
         Tick += OnTick;
@@ -41,16 +45,44 @@ public class LoadAddonNPCs : Script
         }
     }
 
+    private void LoadAnimalsFromFile(string filePath)
+    {
+        if (File.Exists(filePath))
+        {
+            var lines = File.ReadAllLines(filePath);
+            foreach (var line in lines)
+            {
+                if (!string.IsNullOrWhiteSpace(line))
+                {
+                    addonAnimals.Add(line.Trim());
+                }
+            }
+        }
+        else
+        {
+            Notification.Show("Animal file not found!");
+        }
+    }
+
     private void OnTick(object sender, EventArgs e)
     {
-        ticksSinceLastSpawn++;
+        ticksSinceLastSpawnNPC++;
+        ticksSinceLastSpawnAnimal++;
 
         // Check if enough ticks have passed to spawn another NPC
-        if (ticksSinceLastSpawn >= spawnInterval)
+        if (ticksSinceLastSpawnNPC >= spawnIntervalNPC)
         {
             SpawnRandomNPC();
-            ticksSinceLastSpawn = 0; // Reset the tick counter
-            SetRandomSpawnInterval(); // Set a new random spawn interval
+            ticksSinceLastSpawnNPC = 0; // Reset the tick counter
+            SetRandomSpawnIntervalNPC(); // Set a new random spawn interval for NPCs
+        }
+
+        // Check if enough ticks have passed to spawn another animal
+        if (ticksSinceLastSpawnAnimal >= spawnIntervalAnimal)
+        {
+            SpawnRandomAnimal();
+            ticksSinceLastSpawnAnimal = 0; // Reset the tick counter
+            SetRandomSpawnIntervalAnimal(); // Set a new random spawn interval for animals
         }
     }
 
@@ -82,7 +114,9 @@ public class LoadAddonNPCs : Script
 
                 // Spawn the NPC at the random ground-level position
                 Ped ped = World.CreatePed(model, spawnPosition);
-                ped.Task.WanderAround();
+
+                // Assign a random action to the NPC
+                AssignRandomAction(ped);
 
                 model.MarkAsNoLongerNeeded(); // Clean up model to free memory
             }
@@ -97,9 +131,84 @@ public class LoadAddonNPCs : Script
         }
     }
 
-    private void SetRandomSpawnInterval()
+    private void SpawnRandomAnimal()
+    {
+        if (addonAnimals.Count == 0)
+        {
+            Notification.Show("No animals to spawn!");
+            return;
+        }
+
+        // Choose a random animal from the list
+        string randomAnimal = addonAnimals[random.Next(addonAnimals.Count)];
+
+        Model model = new Model(randomAnimal);
+        if (model.IsValid && model.IsInCdImage)
+        {
+            model.Request();
+            DateTime end = DateTime.Now + TimeSpan.FromSeconds(10);
+            while (!model.IsLoaded && DateTime.Now < end)
+            {
+                Script.Wait(50);
+            }
+
+            if (model.IsLoaded)
+            {
+                // Get a random position around the player's position at ground level
+                Vector3 spawnPosition = World.GetNextPositionOnStreet(Game.Player.Character.Position.Around(10f));
+
+                // Spawn the animal at the random ground-level position
+                Ped animal = World.CreatePed(model, spawnPosition);
+
+                // Animals usually wander around
+                animal.Task.WanderAround();
+
+                model.MarkAsNoLongerNeeded(); // Clean up model to free memory
+            }
+            else
+            {
+                Notification.Show($"Failed to load model: {randomAnimal}");
+            }
+        }
+        else
+        {
+            Notification.Show($"Invalid model: {randomAnimal}");
+        }
+    }
+
+    private void AssignRandomAction(Ped ped)
+    {
+        int action = random.Next(4); // Generate a random number between 0 and 3
+
+        switch (action)
+        {
+            case 0:
+                ped.Task.WanderAround();
+                break;
+            case 1:
+                ped.Task.StandStill(-1); // Stand still indefinitely
+                break;
+            case 2:
+                ped.Task.ReactAndFlee(Game.Player.Character);
+                break;
+            case 3:
+                if (!ped.IsPlayer) // Ensure the NPC is not the player
+                {
+                    ped.Task.FightAgainst(Game.Player.Character);
+                }
+                break;
+        }
+    }
+
+    private void SetRandomSpawnIntervalNPC()
     {
         // Generate a random spawn interval between 18 and 22 seconds (in ticks)
-        spawnInterval = random.Next(1080, 1320); // Assuming 60 ticks per second
+        spawnIntervalNPC = random.Next(1080, 1320); // Assuming 60 ticks per second
+    }
+
+    private void SetRandomSpawnIntervalAnimal()
+    {
+        // Generate a random spawn interval between 25 and 35 seconds (in ticks)
+        spawnIntervalAnimal = random.Next(1500, 2100); // Assuming 60 ticks per second
     }
 }
