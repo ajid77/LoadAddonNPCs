@@ -10,7 +10,8 @@ public class LoadAddonNPCs : Script
 {
     private List<string> addonNPCs = new List<string>();
     private int ticksSinceLastSpawn = 0;
-    private const int spawnInterval = 600; // Adjust this value to change spawn frequency (in ticks)
+    private int spawnInterval = 1200; // 20 seconds in ticks (assuming 60 ticks per second)
+    private Random random = new Random();
 
     public LoadAddonNPCs()
     {
@@ -47,22 +48,41 @@ public class LoadAddonNPCs : Script
         // Check if enough ticks have passed to spawn another NPC
         if (ticksSinceLastSpawn >= spawnInterval)
         {
-            foreach (var npc in addonNPCs)
-            {
-                Model model = new Model(npc);
-                if (model.IsValid && model.IsInCdImage)
-                {
-                    model.Request();
-                    while (!model.IsLoaded) Script.Wait(100);
-
-                    // Spawn the NPC at a random location near the player
-                    Ped ped = World.CreatePed(model, Game.Player.Character.Position.Around(5f));
-                    ped.Task.WanderAround();
-                }
-            }
-
-            // Reset the ticks counter
-            ticksSinceLastSpawn = 0;
+            SpawnRandomNPC();
+            ticksSinceLastSpawn = 0; // Reset the tick counter
+            SetRandomSpawnInterval(); // Set a new random spawn interval
         }
+    }
+
+    private void SpawnRandomNPC()
+    {
+        if (addonNPCs.Count == 0)
+        {
+            Notification.Show("No NPCs to spawn!");
+            return;
+        }
+
+        // Choose a random NPC from the list
+        string randomNPC = addonNPCs[random.Next(addonNPCs.Count)];
+
+        Model model = new Model(randomNPC);
+        if (model.IsValid && model.IsInCdImage)
+        {
+            model.Request();
+            while (!model.IsLoaded) Script.Wait(100);
+
+            // Get a random position around the player's position at ground level
+            Vector3 spawnPosition = World.GetNextPositionOnStreet(Game.Player.Character.Position.Around(10f));
+
+            // Spawn the NPC at the random ground-level position
+            Ped ped = World.CreatePed(model, spawnPosition);
+            ped.Task.WanderAround();
+        }
+    }
+
+    private void SetRandomSpawnInterval()
+    {
+        // Generate a random spawn interval between 18 and 22 seconds (in ticks)
+        spawnInterval = random.Next(1080, 1320); // Assuming 60 ticks per second
     }
 }
