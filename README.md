@@ -1,48 +1,34 @@
 Creating a Grand Theft Auto V (GTA V) mod to automatically load all addon NPCs requires some understanding of GTA V modding, scripting, and possibly working with the Script Hook V and other modding tools. Below is a basic outline and code example for such a mod using C# and Script Hook V .NET. This example assumes you have already installed Script Hook V and Script Hook V .NET.
 Requirements:
 
-    Script Hook V: To hook into the game.
-    Script Hook V .NET: To write scripts in C#.
-    A proper GTA V modding environment.
+Steps to Ensure Proper Setup
 
-Steps:
+    Add ScriptHookVDotNet3 Reference:
+        Right-click on your project in the Solution Explorer.
+        Click on References.
+        Select Add Reference.
+        Browse to the location of ScriptHookVDotNet3.dll and add it.
 
-    Install Script Hook V and Script Hook V .NET.
-    Create a new C# script.
-    Write the code to load addon NPCs.
-    Compile and place the script in the scripts folder.
+    Add the Correct Script Code:
+        Ensure your project has a file named LoadAddonNPCs.cs.
+        Replace the content of LoadAddonNPCs.cs with the corrected C# script provided above.
 
-Script Hook V and .NET Setup:
+    Update Target Framework:
+        Right-click on your project in the Solution Explorer.
+        Click on Properties.
+        In the Application tab, change the Target framework to .NET Framework 4.8.
+        Save the changes.
 
-    Download and install Script Hook V from Dev-C.
-    Download Script Hook V .NET from GTA5-Mods.
-    Extract the Script Hook V .NET files (ScriptHookVDotNet.asi, ScriptHookVDotNet2.dll, ScriptHookVDotNet3.dll) to your GTA V directory.
+    Compile Your Project:
+        Build the project by clicking Build > Build Solution.
+        This will generate a .dll file in the bin\Debug or bin\Release folder within your project directory.
 
-C# Script Example:
+    Place the Script:
+        Copy the compiled .dll file to the scripts folder in your GTA V directory.
+        Ensure the addonNPCs.txt file is also in the scripts folder.
 
-    Create a new C# file (e.g., LoadAddonNPCs.cs) in your preferred C# editor.
+    Run the Game:
+        Launch GTA V.
+        The script will automatically run and load the addon NPCs as specified in the addonNPCs.txt file.
 
-Create an addon NPC list:
-
-    Create a text file named addonNPCs.txt in the scripts folder.
-    List all addon NPC model names, one per line.
-
-Compiling the Script:
-
-    Open Visual Studio or any C# compiler.
-    Create a new Class Library project.
-    Add references to ScriptHookVDotNet2.dll and ScriptHookVDotNet3.dll.
-    Add the script code to the project.
-    Compile the project to generate a .dll file.
-
-Placing the Script:
-
-    Place the compiled .dll file into the scripts folder in the GTA V directory.
-    Ensure the addonNPCs.txt file is also in the scripts folder.
-
-Running the Game:
-
-    Launch GTA V.
-    The script will automatically run and load the addon NPCs as specified.
-
-This example is a starting point and can be expanded with more complex functionality, error handling, and customization as needed.
+By following these steps, you should resolve any errors and ensure your script works as intended.
