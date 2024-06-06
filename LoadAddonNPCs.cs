@@ -9,6 +9,8 @@ using GTA.UI;
 public class LoadAddonNPCs : Script
 {
     private List<string> addonNPCs = new List<string>();
+    private int ticksSinceLastSpawn = 0;
+    private const int spawnInterval = 600; // Adjust this value to change spawn frequency (in ticks)
 
     public LoadAddonNPCs()
     {
@@ -40,21 +42,27 @@ public class LoadAddonNPCs : Script
 
     private void OnTick(object sender, EventArgs e)
     {
-        foreach (var npc in addonNPCs)
+        ticksSinceLastSpawn++;
+
+        // Check if enough ticks have passed to spawn another NPC
+        if (ticksSinceLastSpawn >= spawnInterval)
         {
-            Model model = new Model(npc);
-            if (model.IsValid && model.IsInCdImage)
+            foreach (var npc in addonNPCs)
             {
-                model.Request();
-                while (!model.IsLoaded) Script.Wait(100);
+                Model model = new Model(npc);
+                if (model.IsValid && model.IsInCdImage)
+                {
+                    model.Request();
+                    while (!model.IsLoaded) Script.Wait(100);
 
-                // Spawn the NPC at a random location near the player
-                Ped ped = World.CreatePed(model, Game.Player.Character.Position + new Vector3(0, 5, 0));
-                ped.Task.WanderAround();
+                    // Spawn the NPC at a random location near the player
+                    Ped ped = World.CreatePed(model, Game.Player.Character.Position.Around(5f));
+                    ped.Task.WanderAround();
+                }
             }
-        }
 
-        // Clear the list so NPCs are not spawned repeatedly
-        addonNPCs.Clear();
+            // Reset the ticks counter
+            ticksSinceLastSpawn = 0;
+        }
     }
 }
