@@ -109,10 +109,10 @@ public class LoadAddonNPCs : Script
 
             if (model.IsLoaded)
             {
-                // Get a random position around the player's position at ground level
-                Vector3 spawnPosition = World.GetNextPositionOnStreet(Game.Player.Character.Position.Around(10f));
+                // Calculate a position in front of the player
+                Vector3 spawnPosition = GetGroundPositionInFrontOfPlayer(3f);
 
-                // Spawn the NPC at the random ground-level position
+                // Spawn the NPC at the calculated ground-level position
                 Ped ped = World.CreatePed(model, spawnPosition);
 
                 // Assign a random action to the NPC
@@ -154,10 +154,10 @@ public class LoadAddonNPCs : Script
 
             if (model.IsLoaded)
             {
-                // Get a random position around the player's position at ground level
-                Vector3 spawnPosition = World.GetNextPositionOnStreet(Game.Player.Character.Position.Around(10f));
+                // Calculate a position in front of the player
+                Vector3 spawnPosition = GetGroundPositionInFrontOfPlayer(3f);
 
-                // Spawn the animal at the random ground-level position
+                // Spawn the animal at the calculated ground-level position
                 Ped animal = World.CreatePed(model, spawnPosition);
 
                 // Animals usually wander around
@@ -174,6 +174,20 @@ public class LoadAddonNPCs : Script
         {
             Notification.Show($"Invalid model: {randomAnimal}");
         }
+    }
+
+    private Vector3 GetGroundPositionInFrontOfPlayer(float distance)
+    {
+        Vector3 playerPosition = Game.Player.Character.Position;
+        Vector3 forwardVector = Game.Player.Character.ForwardVector;
+        Vector3 positionInFront = playerPosition + forwardVector * distance;
+
+        // Ensure the position is on the ground
+        Vector3 groundPosition = World.GetGroundHeight(positionInFront) != 0 
+            ? new Vector3(positionInFront.X, positionInFront.Y, World.GetGroundHeight(positionInFront))
+            : positionInFront;
+
+        return groundPosition;
     }
 
     private void AssignRandomAction(Ped ped)
