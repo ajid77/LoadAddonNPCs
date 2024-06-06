@@ -4,17 +4,17 @@ using System.IO;
 using GTA;
 using GTA.Native;
 using GTA.Math;
+using GTA.UI;
 
 public class LoadAddonNPCs : Script
 {
-    // List to store NPC model names
     private List<string> addonNPCs = new List<string>();
 
     public LoadAddonNPCs()
     {
         // Load the list of addon NPCs from a file
         LoadNPCsFromFile("scripts/addonNPCs.txt");
-        
+
         // Hook into the Tick event
         Tick += OnTick;
     }
@@ -34,7 +34,7 @@ public class LoadAddonNPCs : Script
         }
         else
         {
-            UI.Notify("NPC file not found!");
+            Notification.Show("NPC file not found!");
         }
     }
 
