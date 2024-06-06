@@ -69,14 +69,31 @@ public class LoadAddonNPCs : Script
         if (model.IsValid && model.IsInCdImage)
         {
             model.Request();
-            while (!model.IsLoaded) Script.Wait(100);
+            DateTime end = DateTime.Now + TimeSpan.FromSeconds(10);
+            while (!model.IsLoaded && DateTime.Now < end)
+            {
+                Script.Wait(50);
+            }
 
-            // Get a random position around the player's position at ground level
-            Vector3 spawnPosition = World.GetNextPositionOnStreet(Game.Player.Character.Position.Around(10f));
+            if (model.IsLoaded)
+            {
+                // Get a random position around the player's position at ground level
+                Vector3 spawnPosition = World.GetNextPositionOnStreet(Game.Player.Character.Position.Around(10f));
 
-            // Spawn the NPC at the random ground-level position
-            Ped ped = World.CreatePed(model, spawnPosition);
-            ped.Task.WanderAround();
+                // Spawn the NPC at the random ground-level position
+                Ped ped = World.CreatePed(model, spawnPosition);
+                ped.Task.WanderAround();
+
+                model.MarkAsNoLongerNeeded(); // Clean up model to free memory
+            }
+            else
+            {
+                Notification.Show($"Failed to load model: {randomNPC}");
+            }
+        }
+        else
+        {
+            Notification.Show($"Invalid model: {randomNPC}");
         }
     }
 
